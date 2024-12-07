@@ -7,44 +7,56 @@ import Toolbar from '@/components/Toolbar'
 import TemplateSelector from '@/components/TemplateSelector'
 import SkillsEditor from '@/components/SkillsEditor'
 import { ResumeProvider } from '@/context/ResumeContext'
+import ResumeForm from '@/components/ResumeForm'
 
 export default function Builder() {
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const [sidebarTab, setSidebarTab] = useState<'sections' | 'template' | 'style'>('sections')
 
+  const handleSaveResume = async (data: any) => {
+    try {
+      const response = await fetch('/api/resumes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save resume');
+      }
+
+      // Handle successful save
+      console.log('Resume saved successfully');
+    } catch (error) {
+      console.error('Error saving resume:', error);
+    }
+  };
+
   return (
     <ResumeProvider>
-      <div className="min-h-screen flex">
+      <div className="min-h-screen flex bg-gray-50">
         {/* Left Sidebar - Tools */}
-        <div className="w-80 border-r bg-white">
-          <div className="border-b p-4">
-            <div className="flex space-x-2">
+        <div className="w-64 bg-white border-r border-gray-200">
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex gap-2">
               <button
                 onClick={() => setSidebarTab('sections')}
-                className={`px-4 py-2 rounded-md ${
+                className={`flex-1 px-3 py-1.5 text-sm rounded-md ${
                   sidebarTab === 'sections'
-                    ? 'bg-primary-500 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                Sections
-              </button>
-              <button
-                onClick={() => setSidebarTab('template')}
-                className={`px-4 py-2 rounded-md ${
-                  sidebarTab === 'template'
-                    ? 'bg-primary-500 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200'
-                }`}
-              >
-                Template
+                Layout
               </button>
               <button
                 onClick={() => setSidebarTab('style')}
-                className={`px-4 py-2 rounded-md ${
+                className={`flex-1 px-3 py-1.5 text-sm rounded-md ${
                   sidebarTab === 'style'
-                    ? 'bg-primary-500 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 Style
@@ -52,35 +64,51 @@ export default function Builder() {
             </div>
           </div>
 
-          <div className="overflow-y-auto h-[calc(100vh-5rem)]">
-            {sidebarTab === 'sections' && <Toolbar />}
-            {sidebarTab === 'template' && <TemplateSelector />}
+          <div className="p-4">
+            {sidebarTab === 'sections' && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900 mb-2">Add Section</h3>
+                  <div className="space-y-1">
+                    <button className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
+                      + Work Experience
+                    </button>
+                    <button className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
+                      + Education
+                    </button>
+                    <button className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
+                      + Skills
+                    </button>
+                    <button className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
+                      + Projects
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             {sidebarTab === 'style' && (
-              <div className="p-4">
-                <h2 className="text-xl font-semibold mb-4">Style Options</h2>
-                {/* Add style options here */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900 mb-2">Template</h3>
+                  <TemplateSelector />
+                </div>
               </div>
             )}
           </div>
         </div>
 
         {/* Main Content - Resume Editor */}
-        <main className="flex-1 p-8 bg-gray-50">
-          <div className="max-w-[21cm] mx-auto bg-white shadow-lg min-h-[29.7cm] p-8">
+        <main className="flex-1 p-8 overflow-y-auto">
+          <div className="max-w-3xl mx-auto">
+            <ResumeForm onSave={handleSaveResume} />
             <DragDropContext onDragEnd={() => {}}>
               <Droppable droppableId="resume-sections">
                 {(provided) => (
                   <div
                     {...provided.droppableProps}
                     ref={provided.innerRef}
-                    className="space-y-4"
+                    className="space-y-4 bg-white shadow-lg p-8 mt-8"
                   >
-                    <ResumeSection
-                      id="personal"
-                      title="Personal Information"
-                      isActive={activeSection === 'personal'}
-                      onActivate={() => setActiveSection('personal')}
-                    />
                     <ResumeSection
                       id="experience"
                       title="Work Experience"
@@ -103,5 +131,5 @@ export default function Builder() {
         </main>
       </div>
     </ResumeProvider>
-  )
+  );
 }
